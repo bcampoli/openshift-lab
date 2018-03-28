@@ -1,0 +1,12 @@
+oc policy add-role-to-user edit system:serviceaccount:bc-jenkins:jenkins -n bc-tasks-dev
+oc policy add-role-to-user edit system:serviceaccount:bc-jenkins:default -n bc-tasks-dev
+
+oc policy add-role-to-group system:image-puller system:serviceaccounts:bc-tasks-prod -n bc-tasks-dev
+oc policy add-role-to-user edit system:serviceaccount:bc-jenkins:jenkins -n bc-tasks-prod
+oc policy add-role-to-user edit system:serviceaccount:bc-jenkins:default -n bc-tasks-prod
+
+#allows prod to pull from dev 
+oc policy add-role-to-user \
+    system:image-puller system:serviceaccount:bc-tasks-prod:default \
+    --namespace=bc-tasks-dev
+

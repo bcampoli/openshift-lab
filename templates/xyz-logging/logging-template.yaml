@@ -1,0 +1,672 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: tasks-logging-template
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/image.dockerRepositoryCheck: 2018-03-20T14:37:14Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      app: logtofile
+    name: logtofile
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: docker.io/wkulhanek/logtofile:latest
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/xyz-logging/logtofile:latest
+      generation: 2
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+    name: logtofile
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: logtofile
+      deploymentconfig: logtofile
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+        - args:
+          - /bin/sh
+          - -c
+          - sleep 5 && tail -n+1 -f /tmp/datelog.txt
+          image: docker.io/busybox:latest
+          imagePullPolicy: Always
+          name: busybox
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: tmp
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - logtofile
+        from:
+          kind: ImageStreamTag
+          name: logtofile:latest
+          namespace: xyz-logging
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/created-by: |
+        {"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"ReplicationController","namespace":"xyz-logging","name":"logtofile-6","uid":"011f4264-2c51-11e8-9d34-166b4f376a2c","apiVersion":"v1","resourceVersion":"410599"}}
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container logtofile; cpu, memory limit for container logtofile; cpu, memory
+        request for container busybox; cpu, memory limit for container busybox'
+      openshift.io/deployment-config.latest-version: "6"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.name: logtofile-6
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/scc: restricted
+    creationTimestamp: null
+    generateName: logtofile-6-
+    labels:
+      app: logtofile
+      deployment: logtofile-6
+      deploymentconfig: logtofile
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicationController
+      name: logtofile-6
+      uid: 011f4264-2c51-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+      imagePullPolicy: Always
+      name: logtofile
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        privileged: false
+        runAsUser: 1000710000
+        seLinuxOptions:
+          level: s0:c27,c4
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-w849g
+        readOnly: true
+    - args:
+      - /bin/sh
+      - -c
+      - sleep 5 && tail -n+1 -f /tmp/datelog.txt
+      image: docker.io/busybox:latest
+      imagePullPolicy: Always
+      name: busybox
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        privileged: false
+        runAsUser: 1000710000
+        seLinuxOptions:
+          level: s0:c27,c4
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-w849g
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: default-dockercfg-wh9s8
+    nodeName: node2.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000710000
+      seLinuxOptions:
+        level: s0:c27,c4
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: tmp
+    - name: default-token-w849g
+      secret:
+        defaultMode: 420
+        secretName: default-token-w849g
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/original-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2018-03-20 14:37:20 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-20 14:37:14 +0000 UTC
+      openshift.io/deployer-pod.name: logtofile-1-deploy
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"logtofile","namespace":"xyz-logging","selfLink":"/apis/apps.openshift.io/v1/namespaces/xyz-logging/deploymentconfigs/logtofile","uid":"2e47b59b-2c4c-11e8-9d34-166b4f376a2c","resourceVersion":"401461","generation":2,"creationTimestamp":"2018-03-20T14:37:14Z","labels":{"app":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["logtofile"],"from":{"kind":"ImageStreamTag","namespace":"xyz-logging","name":"logtofile:latest"},"lastTriggeredImage":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"logtofile","deploymentconfig":"logtofile"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"logtofile","deploymentconfig":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"logtofile","image":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":1,"observedGeneration":2,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-03-20T14:37:14Z","lastTransitionTime":"2018-03-20T14:37:14Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+      openshift.io/deployment-config.name: logtofile
+    name: logtofile-1
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: logtofile
+      uid: 2e47b59b-2c4c-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 0
+    selector:
+      app: logtofile
+      deployment: logtofile-1
+      deploymentconfig: logtofile
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "1"
+          openshift.io/deployment-config.name: logtofile
+          openshift.io/deployment.name: logtofile-1
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deployment: logtofile-1
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/original-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2018-03-20 14:50:12 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-20 14:49:01 +0000 UTC
+      openshift.io/deployer-pod.name: logtofile-2-deploy
+      openshift.io/deployment-config.latest-version: "2"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: ""
+      openshift.io/deployment.status-reason: image change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"logtofile","namespace":"xyz-logging","selfLink":"/apis/apps.openshift.io/v1/namespaces/xyz-logging/deploymentconfigs/logtofile","uid":"2e47b59b-2c4c-11e8-9d34-166b4f376a2c","resourceVersion":"404439","generation":3,"creationTimestamp":"2018-03-20T14:37:14Z","labels":{"app":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["logtofile"],"from":{"kind":"ImageStreamTag","namespace":"xyz-logging","name":"logtofile:latest"},"lastTriggeredImage":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"logtofile","deploymentconfig":"logtofile"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"logtofile","deploymentconfig":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"logtofile","image":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"},{"name":"busybox","image":"docker.io/busybox:latest","args":["/bin/sh","-c","cat /tmp/datelog.txt"],"resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":2,"observedGeneration":3,"replicas":1,"updatedReplicas":0,"availableReplicas":1,"unavailableReplicas":0,"details":{"message":"image change","causes":[{"type":"ImageChange","imageTrigger":{"from":{"kind":"DockerImage","name":"docker.io/busybox:latest"}}}]},"conditions":[{"type":"Available","status":"True","lastUpdateTime":"2018-03-20T14:37:20Z","lastTransitionTime":"2018-03-20T14:37:20Z","message":"Deployment config has minimum availability."},{"type":"Progressing","status":"True","lastUpdateTime":"2018-03-20T14:37:21Z","lastTransitionTime":"2018-03-20T14:37:21Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"logtofile-1\" successfully rolled out"}],"readyReplicas":1}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+      openshift.io/deployment-config.name: logtofile
+    name: logtofile-2
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: logtofile
+      uid: 2e47b59b-2c4c-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 0
+    selector:
+      app: logtofile
+      deployment: logtofile-2
+      deploymentconfig: logtofile
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "2"
+          openshift.io/deployment-config.name: logtofile
+          openshift.io/deployment.name: logtofile-2
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deployment: logtofile-2
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - args:
+          - /bin/sh
+          - -c
+          - cat /tmp/datelog.txt
+          image: docker.io/busybox:latest
+          imagePullPolicy: Always
+          name: busybox
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/original-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2018-03-20 15:00:29 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-20 15:00:20 +0000 UTC
+      openshift.io/deployer-pod.name: logtofile-3-deploy
+      openshift.io/deployment-config.latest-version: "3"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: ""
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"logtofile","namespace":"xyz-logging","selfLink":"/apis/apps.openshift.io/v1/namespaces/xyz-logging/deploymentconfigs/logtofile","uid":"2e47b59b-2c4c-11e8-9d34-166b4f376a2c","resourceVersion":"407523","generation":4,"creationTimestamp":"2018-03-20T14:37:14Z","labels":{"app":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["logtofile"],"from":{"kind":"ImageStreamTag","namespace":"xyz-logging","name":"logtofile:latest"},"lastTriggeredImage":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"logtofile","deploymentconfig":"logtofile"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"logtofile","deploymentconfig":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"logtofile","image":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"},{"name":"busybox","image":"docker.io/busybox:latest","args":["/bin/sh","-c","sleep 5 \u0026\u0026 tail -n+1 -f /tmp/datelog.txt"],"resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":3,"observedGeneration":4,"replicas":1,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":1,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Progressing","status":"True","lastUpdateTime":"2018-03-20T14:50:13Z","lastTransitionTime":"2018-03-20T14:50:11Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"logtofile-2\" successfully rolled out"},{"type":"Available","status":"False","lastUpdateTime":"2018-03-20T15:00:19Z","lastTransitionTime":"2018-03-20T15:00:19Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+      openshift.io/deployment-config.name: logtofile
+    name: logtofile-3
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: logtofile
+      uid: 2e47b59b-2c4c-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 0
+    selector:
+      app: logtofile
+      deployment: logtofile-3
+      deploymentconfig: logtofile
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "3"
+          openshift.io/deployment-config.name: logtofile
+          openshift.io/deployment.name: logtofile-3
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deployment: logtofile-3
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - args:
+          - /bin/sh
+          - -c
+          - sleep 5 && tail -n+1 -f /tmp/datelog.txt
+          image: docker.io/busybox:latest
+          imagePullPolicy: Always
+          name: busybox
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/original-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2018-03-20 15:02:26 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-20 15:02:18 +0000 UTC
+      openshift.io/deployer-pod.name: logtofile-4-deploy
+      openshift.io/deployment-config.latest-version: "4"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: ""
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"logtofile","namespace":"xyz-logging","selfLink":"/apis/apps.openshift.io/v1/namespaces/xyz-logging/deploymentconfigs/logtofile","uid":"2e47b59b-2c4c-11e8-9d34-166b4f376a2c","resourceVersion":"408021","generation":5,"creationTimestamp":"2018-03-20T14:37:14Z","labels":{"app":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["logtofile"],"from":{"kind":"ImageStreamTag","namespace":"xyz-logging","name":"logtofile:latest"},"lastTriggeredImage":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"logtofile","deploymentconfig":"logtofile"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"logtofile","deploymentconfig":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"volumes":[{"name":"volume-dw5m6","emptyDir":{}}],"containers":[{"name":"logtofile","image":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"},{"name":"busybox","image":"docker.io/busybox:latest","args":["/bin/sh","-c","sleep 5 \u0026\u0026 tail -n+1 -f /tmp/datelog.txt"],"resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":4,"observedGeneration":5,"replicas":1,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":1,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Progressing","status":"True","lastUpdateTime":"2018-03-20T15:00:29Z","lastTransitionTime":"2018-03-20T15:00:28Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"logtofile-3\" successfully rolled out"},{"type":"Available","status":"False","lastUpdateTime":"2018-03-20T15:01:35Z","lastTransitionTime":"2018-03-20T15:01:35Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+      openshift.io/deployment-config.name: logtofile
+    name: logtofile-4
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: logtofile
+      uid: 2e47b59b-2c4c-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 0
+    selector:
+      app: logtofile
+      deployment: logtofile-4
+      deploymentconfig: logtofile
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "4"
+          openshift.io/deployment-config.name: logtofile
+          openshift.io/deployment.name: logtofile-4
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deployment: logtofile-4
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - args:
+          - /bin/sh
+          - -c
+          - sleep 5 && tail -n+1 -f /tmp/datelog.txt
+          image: docker.io/busybox:latest
+          imagePullPolicy: Always
+          name: busybox
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: volume-dw5m6
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/desired-replicas: "1"
+      kubectl.kubernetes.io/update-source-id: logtofile-4:aee10a1b-2c4f-11e8-9d34-166b4f376a2c
+      openshift.io/deployer-pod.completed-at: 2018-03-20 15:11:45 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-20 15:07:41 +0000 UTC
+      openshift.io/deployer-pod.name: logtofile-5-deploy
+      openshift.io/deployment-config.latest-version: "5"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.cancelled: "true"
+      openshift.io/deployment.phase: Failed
+      openshift.io/deployment.replicas: "0"
+      openshift.io/deployment.status-reason: newer deployment was found running
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"logtofile","namespace":"xyz-logging","selfLink":"/apis/apps.openshift.io/v1/namespaces/xyz-logging/deploymentconfigs/logtofile","uid":"2e47b59b-2c4c-11e8-9d34-166b4f376a2c","resourceVersion":"409425","generation":6,"creationTimestamp":"2018-03-20T14:37:14Z","labels":{"app":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["logtofile"],"from":{"kind":"ImageStreamTag","namespace":"xyz-logging","name":"logtofile:latest"},"lastTriggeredImage":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"logtofile","deploymentconfig":"logtofile"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"logtofile","deploymentconfig":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"volumes":[{"name":"volume-dw5m6","emptyDir":{}}],"containers":[{"name":"logtofile","image":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852","resources":{},"volumeMounts":[{"name":"volume-dw5m6","mountPath":"/tmp"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"},{"name":"busybox","image":"docker.io/busybox:latest","args":["/bin/sh","-c","sleep 5 \u0026\u0026 tail -n+1 -f /tmp/datelog.txt"],"resources":{},"volumeMounts":[{"name":"volume-dw5m6","mountPath":"/tmp"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":5,"observedGeneration":6,"replicas":1,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":1,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Progressing","status":"True","lastUpdateTime":"2018-03-20T15:02:27Z","lastTransitionTime":"2018-03-20T15:02:25Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"logtofile-4\" successfully rolled out"},{"type":"Available","status":"False","lastUpdateTime":"2018-03-20T15:06:55Z","lastTransitionTime":"2018-03-20T15:06:55Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+      openshift.io/deployment-config.name: logtofile
+    name: logtofile-5
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: logtofile
+      uid: 2e47b59b-2c4c-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 0
+    selector:
+      app: logtofile
+      deployment: logtofile-5
+      deploymentconfig: logtofile
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "5"
+          openshift.io/deployment-config.name: logtofile
+          openshift.io/deployment.name: logtofile-5
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deployment: logtofile-5
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /tmp
+            name: volume-dw5m6
+        - args:
+          - /bin/sh
+          - -c
+          - sleep 5 && tail -n+1 -f /tmp/datelog.txt
+          image: docker.io/busybox:latest
+          imagePullPolicy: Always
+          name: busybox
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /tmp
+            name: volume-dw5m6
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: volume-dw5m6
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-03-20 15:11:54 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-20 15:11:45 +0000 UTC
+      openshift.io/deployer-pod.name: logtofile-6-deploy
+      openshift.io/deployment-config.latest-version: "6"
+      openshift.io/deployment-config.name: logtofile
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: ""
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"logtofile","namespace":"xyz-logging","selfLink":"/apis/apps.openshift.io/v1/namespaces/xyz-logging/deploymentconfigs/logtofile","uid":"2e47b59b-2c4c-11e8-9d34-166b4f376a2c","resourceVersion":"410491","generation":7,"creationTimestamp":"2018-03-20T14:37:14Z","labels":{"app":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["logtofile"],"from":{"kind":"ImageStreamTag","namespace":"xyz-logging","name":"logtofile:latest"},"lastTriggeredImage":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"logtofile","deploymentconfig":"logtofile"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"logtofile","deploymentconfig":"logtofile"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"volumes":[{"name":"tmp","emptyDir":{}}],"containers":[{"name":"logtofile","image":"docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852","resources":{},"volumeMounts":[{"name":"tmp","mountPath":"/tmp"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"},{"name":"busybox","image":"docker.io/busybox:latest","args":["/bin/sh","-c","sleep 5 \u0026\u0026 tail -n+1 -f /tmp/datelog.txt"],"resources":{},"volumeMounts":[{"name":"tmp","mountPath":"/tmp"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":6,"observedGeneration":7,"replicas":2,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":2,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Progressing","status":"True","lastUpdateTime":"2018-03-20T15:07:44Z","lastTransitionTime":"2018-03-20T15:07:44Z","reason":"ReplicationControllerUpdated","message":"replication controller \"logtofile-5\" is progressing"},{"type":"Available","status":"False","lastUpdateTime":"2018-03-20T15:09:18Z","lastTransitionTime":"2018-03-20T15:09:18Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: logtofile
+      openshift.io/deployment-config.name: logtofile
+    name: logtofile-6
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: logtofile
+      uid: 2e47b59b-2c4c-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 1
+    selector:
+      app: logtofile
+      deployment: logtofile-6
+      deploymentconfig: logtofile
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "6"
+          openshift.io/deployment-config.name: logtofile
+          openshift.io/deployment.name: logtofile-6
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: logtofile
+          deployment: logtofile-6
+          deploymentconfig: logtofile
+      spec:
+        containers:
+        - image: docker.io/wkulhanek/logtofile@sha256:90624a732b17daee5deb15313f9d2a5917935018a8fa1b298e3446f226f54852
+          imagePullPolicy: Always
+          name: logtofile
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+        - args:
+          - /bin/sh
+          - -c
+          - sleep 5 && tail -n+1 -f /tmp/datelog.txt
+          image: docker.io/busybox:latest
+          imagePullPolicy: Always
+          name: busybox
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: tmp
+  status:
+    replicas: 0

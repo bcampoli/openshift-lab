@@ -1,0 +1,94 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: '2018-03-22T16:52:15Z'
+  generation: 10
+  labels:
+    app: tasks-green
+  name: tasks-green
+  namespace: bc-tasks-prod
+  resourceVersion: '1153963'
+  selfLink: >-
+    /apis/apps.openshift.io/v1/namespaces/bc-tasks-prod/deploymentconfigs/tasks-green
+  uid: 600a96a1-2df1-11e8-9d34-166b4f376a2c
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: tasks-green
+    deploymentconfig: tasks-green
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        app: tasks-green
+        deploymentconfig: tasks-green
+    spec:
+      containers:
+        - image: 'docker-registry.default.svc:5000/bc-tasks-dev/tasks:1.0'
+          imagePullPolicy: IfNotPresent
+          name: tasks-green
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /opt/eap/standalone/configuration/application-users.properties
+              name: jboss-config
+              subPath: application-users.properties
+            - mountPath: /opt/eap/standalone/configuration/application-roles.properties
+              name: jboss-config1
+              subPath: application-roles.properties
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: tasks-green-config
+          name: jboss-config
+        - configMap:
+            defaultMode: 420
+            name: tasks-green-config
+          name: jboss-config1
+  test: false
+  triggers: []
+status:
+  availableReplicas: 1
+  conditions:
+    - lastTransitionTime: '2018-03-22T20:12:06Z'
+      lastUpdateTime: '2018-03-22T20:12:06Z'
+      message: Deployment config has minimum availability.
+      status: 'True'
+      type: Available
+    - lastTransitionTime: '2018-03-22T20:12:07Z'
+      lastUpdateTime: '2018-03-22T20:12:07Z'
+      message: replication controller "tasks-green-5" successfully rolled out
+      reason: NewReplicationControllerAvailable
+      status: 'True'
+      type: Progressing
+  details:
+    causes:
+      - type: Manual
+    message: manual change
+  latestVersion: 5
+  observedGeneration: 10
+  readyReplicas: 1
+  replicas: 1
+  unavailableReplicas: 0
+  updatedReplicas: 1

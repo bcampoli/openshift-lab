@@ -1,0 +1,2665 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: builds-template
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: builder
+    name: builder
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: builder:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: /go-scratch/hello_world
+      git:
+        uri: https://github.com/tonykay/ose-chained-builds
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: s2i-go:latest
+          namespace: bc-builds
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: Iv1V9iGrmxhIla3og340
+      type: GitHub
+    - generic:
+        secret: BWpTR7qttUrutJ_3d5ca
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: ola
+    name: ola
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ola:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: redhat-openjdk18-openshift:1.2
+          namespace: openshift
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: B1ho_2pj-ErEsIkHvqRg
+      type: GitHub
+    - generic:
+        secret: qMBxHstPR7e_sDpkCw6L
+      type: Generic
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: runtime
+    name: runtime
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: runtime:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM scratch
+        COPY main /main
+        EXPOSE 8080
+        ENTRYPOINT ["/main"]
+      images:
+      - from:
+          kind: ImageStreamTag
+          name: builder:latest
+          namespace: bc-builds
+        paths:
+        - destinationDir: .
+          sourcePath: /opt/app-root/src/go/src/main/main
+      type: Dockerfile
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: scratch
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: HfQCzG2FBCnSbDGHoUZU
+      type: GitHub
+    - generic:
+        secret: 7c7NehQSlPvsOuqptJSV
+      type: Generic
+    - imageChange:
+        from:
+          kind: ImageStreamTag
+          name: builder:latest
+          namespace: bc-builds
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: tasks:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: /
+      git:
+        ref: master
+        uri: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      sourceSecret:
+        name: gogs-secret
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public
+        - name: ARTIFACT_DIR
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap70-openshift:1.6
+          namespace: openshift
+        incremental: true
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: UEWpmSQw
+      type: GitHub
+    - generic:
+        secret: Y3I5R0PI
+      type: Generic
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: builder
+      openshift.io/build.number: "1"
+      openshift.io/build.pod-name: builder-1-build
+    creationTimestamp: null
+    labels:
+      build: builder
+      buildconfig: builder
+      openshift.io/build-config.name: builder
+      openshift.io/build.start-policy: Serial
+    name: builder-1
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: builder
+      uid: 29d131b2-2dea-11e8-9d34-166b4f376a2c
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-lz68f
+      to:
+        kind: ImageStreamTag
+        name: builder:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: ankay@redhat.com
+          name: Tony Kay
+        commit: 57459ac30e5e6689e8442e0bcfb4628a2336e6ff
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Added alab message
+      type: Git
+    serviceAccount: builder
+    source:
+      contextDir: /go-scratch/hello_world
+      git:
+        uri: https://github.com/tonykay/ose-chained-builds
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: DockerImage
+          name: jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9
+      type: Source
+    triggeredBy:
+    - imageChangeBuild:
+        fromRef:
+          kind: ImageStreamTag
+          name: s2i-go:latest
+          namespace: bc-builds
+        imageID: jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9
+      message: Image change
+  status:
+    config:
+      name: builder
+    output:
+      to:
+        imageDigest: sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603
+    outputDockerImageReference: docker-registry.default.svc:5000/bc-builds/builder:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 435
+      name: FetchInputs
+      startTime: 2018-03-22T16:00:41Z
+      steps:
+      - durationMilliseconds: 435
+        name: FetchGitSource
+        startTime: 2018-03-22T16:00:41Z
+    - durationMilliseconds: 3554
+      name: CommitContainer
+      startTime: 2018-03-22T16:01:25Z
+      steps:
+      - durationMilliseconds: 3554
+        name: CommitContainer
+        startTime: 2018-03-22T16:01:25Z
+    - durationMilliseconds: 42766
+      name: Assemble
+      startTime: 2018-03-22T16:00:46Z
+      steps:
+      - durationMilliseconds: 42766
+        name: AssembleBuildScripts
+        startTime: 2018-03-22T16:00:46Z
+    - durationMilliseconds: 26387
+      name: PushImage
+      startTime: 2018-03-22T16:01:29Z
+      steps:
+      - durationMilliseconds: 26387
+        name: PushImage
+        startTime: 2018-03-22T16:01:29Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: ola
+      openshift.io/build.number: "1"
+      openshift.io/build.pod-name: ola-1-build
+    creationTimestamp: null
+    labels:
+      build: ola
+      buildconfig: ola
+      openshift.io/build-config.name: ola
+      openshift.io/build.start-policy: Serial
+    name: ola-1
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: ola
+      uid: 3605ffc1-2de9-11e8-9d34-166b4f376a2c
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-lz68f
+      to:
+        kind: ImageStreamTag
+        name: ola:latest
+    postCommit: {}
+    resources: {}
+    serviceAccount: builder
+    source:
+      binary:
+        asFile: ola.jar
+      type: Binary
+    strategy:
+      sourceStrategy:
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429
+      type: Source
+    triggeredBy: []
+  status:
+    config:
+      name: ola
+    output:
+      to:
+        imageDigest: sha256:c7e211a24131adbc998934be16a17b2c5d3c608fb8b110cc293cc4a79cc99548
+    outputDockerImageReference: docker-registry.default.svc:5000/bc-builds/ola:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 2859
+      name: CommitContainer
+      startTime: 2018-03-22T15:54:24Z
+      steps:
+      - durationMilliseconds: 2859
+        name: CommitContainer
+        startTime: 2018-03-22T15:54:24Z
+    - durationMilliseconds: 5673
+      name: Assemble
+      startTime: 2018-03-22T15:54:21Z
+      steps:
+      - durationMilliseconds: 5673
+        name: AssembleBuildScripts
+        startTime: 2018-03-22T15:54:21Z
+    - durationMilliseconds: 24803
+      name: PushImage
+      startTime: 2018-03-22T15:54:27Z
+      steps:
+      - durationMilliseconds: 24803
+        name: PushImage
+        startTime: 2018-03-22T15:54:27Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: runtime
+      openshift.io/build.number: "1"
+      openshift.io/build.pod-name: runtime-1-build
+    creationTimestamp: null
+    labels:
+      build: runtime
+      buildconfig: runtime
+      openshift.io/build-config.name: runtime
+      openshift.io/build.start-policy: Serial
+    name: runtime-1
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: runtime
+      uid: 5c88e6cf-2dea-11e8-9d34-166b4f376a2c
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-lz68f
+      to:
+        kind: ImageStreamTag
+        name: runtime:latest
+    postCommit: {}
+    resources: {}
+    serviceAccount: builder
+    source:
+      dockerfile: |-
+        FROM scratch
+        COPY main /main
+        EXPOSE 8080
+        ENTRYPOINT ["/main"]
+      images:
+      - from:
+          kind: DockerImage
+          name: docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603
+        paths:
+        - destinationDir: .
+          sourcePath: /opt/app-root/src/go/src/main/main
+        pullSecret:
+          name: builder-dockercfg-lz68f
+      type: Dockerfile
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: scratch
+      type: Docker
+    triggeredBy:
+    - message: Build configuration change
+  status:
+    config:
+      name: runtime
+    output:
+      to:
+        imageDigest: sha256:7af1a670831fbfa424c057ec8bea760b7bfbc8a4f55023a695af974f168d44a9
+    outputDockerImageReference: docker-registry.default.svc:5000/bc-builds/runtime:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 8323
+      name: Build
+      startTime: 2018-03-22T16:02:15Z
+      steps:
+      - durationMilliseconds: 8323
+        name: DockerBuild
+        startTime: 2018-03-22T16:02:15Z
+    - durationMilliseconds: 2543
+      name: PushImage
+      startTime: 2018-03-22T16:02:24Z
+      steps:
+      - durationMilliseconds: 2543
+        name: PushDockerImage
+        startTime: 2018-03-22T16:02:24Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: tasks
+      openshift.io/build.number: "1"
+      openshift.io/build.pod-name: tasks-1-build
+    creationTimestamp: null
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      buildconfig: tasks
+      openshift.io/build-config.name: tasks
+      openshift.io/build.start-policy: Serial
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks-1
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: tasks
+      uid: eb013677-2de4-11e8-9d34-166b4f376a2c
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-lz68f
+      to:
+        kind: ImageStreamTag
+        name: tasks:latest
+    postCommit: {}
+    resources: {}
+    serviceAccount: builder
+    source:
+      contextDir: /
+      git:
+        ref: master
+        uri: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public
+        - name: ARTIFACT_DIR
+        forcePull: true
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5
+      type: Source
+    triggeredBy:
+    - imageChangeBuild:
+        fromRef:
+          kind: ImageStreamTag
+          name: jboss-eap70-openshift:1.6
+          namespace: openshift
+        imageID: registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5
+      message: Image change
+  status:
+    config:
+      name: tasks
+    message: Failed to fetch the input source.
+    output: {}
+    outputDockerImageReference: docker-registry.default.svc:5000/bc-builds/tasks:latest
+    phase: New
+    reason: FetchSourceFailed
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: tasks
+      openshift.io/build.number: "2"
+      openshift.io/build.pod-name: tasks-2-build
+    creationTimestamp: null
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      buildconfig: tasks
+      openshift.io/build-config.name: tasks
+      openshift.io/build.start-policy: Serial
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks-2
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: tasks
+      uid: eb013677-2de4-11e8-9d34-166b4f376a2c
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-lz68f
+      to:
+        kind: ImageStreamTag
+        name: tasks:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: william.campoli-logimethods.com@ocplab-f786.oslab.opentlc.com
+          name: william campoli
+        commit: 6bccfa2a17cde42e7f54a483efeadb49e25d607e
+        committer:
+          email: william.campoli-logimethods.com@ocplab-f786.oslab.opentlc.com
+          name: william campoli
+        message: changed settings again
+      type: Git
+    serviceAccount: builder
+    source:
+      contextDir: /
+      git:
+        ref: master
+        uri: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      sourceSecret:
+        name: gogs-secret
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public
+        - name: ARTIFACT_DIR
+        forcePull: true
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5
+      type: Source
+    triggeredBy:
+    - message: Manually triggered
+  status:
+    config:
+      name: tasks
+    output:
+      to:
+        imageDigest: sha256:a960885559845622dc5a016c708f50a4eddb91e01f985116f699b386bc39c1c7
+    outputDockerImageReference: docker-registry.default.svc:5000/bc-builds/tasks:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 418
+      name: FetchInputs
+      startTime: 2018-03-22T15:26:47Z
+      steps:
+      - durationMilliseconds: 418
+        name: FetchGitSource
+        startTime: 2018-03-22T15:26:47Z
+    - durationMilliseconds: 4070
+      name: CommitContainer
+      startTime: 2018-03-22T15:27:48Z
+      steps:
+      - durationMilliseconds: 4070
+        name: CommitContainer
+        startTime: 2018-03-22T15:27:48Z
+    - durationMilliseconds: 58210
+      name: Assemble
+      startTime: 2018-03-22T15:26:53Z
+      steps:
+      - durationMilliseconds: 58210
+        name: AssembleBuildScripts
+        startTime: 2018-03-22T15:26:53Z
+    - durationMilliseconds: 8573
+      name: PushImage
+      startTime: 2018-03-22T15:27:52Z
+      steps:
+      - durationMilliseconds: 8573
+        name: PushImage
+        startTime: 2018-03-22T15:27:52Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: tasks
+      openshift.io/build.number: "3"
+      openshift.io/build.pod-name: tasks-3-build
+    creationTimestamp: null
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      buildconfig: tasks
+      openshift.io/build-config.name: tasks
+      openshift.io/build.start-policy: Serial
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks-3
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: tasks
+      uid: eb013677-2de4-11e8-9d34-166b4f376a2c
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-lz68f
+      to:
+        kind: ImageStreamTag
+        name: tasks:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: william.campoli-logimethods.com@ocplab-f786.oslab.opentlc.com
+          name: william campoli
+        commit: 6bccfa2a17cde42e7f54a483efeadb49e25d607e
+        committer:
+          email: william.campoli-logimethods.com@ocplab-f786.oslab.opentlc.com
+          name: william campoli
+        message: changed settings again
+      type: Git
+    serviceAccount: builder
+    source:
+      contextDir: /
+      git:
+        ref: master
+        uri: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      sourceSecret:
+        name: gogs-secret
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public
+        - name: ARTIFACT_DIR
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5
+        incremental: true
+      type: Source
+    triggeredBy:
+    - message: Manually triggered
+  status:
+    config:
+      name: tasks
+    output:
+      to:
+        imageDigest: sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f
+    outputDockerImageReference: docker-registry.default.svc:5000/bc-builds/tasks:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 454
+      name: FetchInputs
+      startTime: 2018-03-22T15:31:26Z
+      steps:
+      - durationMilliseconds: 454
+        name: FetchGitSource
+        startTime: 2018-03-22T15:31:26Z
+    - durationMilliseconds: 164
+      name: PullImages
+      startTime: 2018-03-22T15:31:34Z
+      steps:
+      - durationMilliseconds: 164
+        name: PullPreviousImage
+        startTime: 2018-03-22T15:31:34Z
+    - durationMilliseconds: 9298
+      name: RetrieveArtifacts
+      startTime: 2018-03-22T15:31:35Z
+      steps:
+      - durationMilliseconds: 9298
+        name: RetrievePreviousArtifacts
+        startTime: 2018-03-22T15:31:35Z
+    - durationMilliseconds: 4550
+      name: CommitContainer
+      startTime: 2018-03-22T15:32:31Z
+      steps:
+      - durationMilliseconds: 4550
+        name: CommitContainer
+        startTime: 2018-03-22T15:32:31Z
+    - durationMilliseconds: 50216
+      name: Assemble
+      startTime: 2018-03-22T15:31:45Z
+      steps:
+      - durationMilliseconds: 50216
+        name: AssembleBuildScripts
+        startTime: 2018-03-22T15:31:45Z
+    - durationMilliseconds: 6531
+      name: PushImage
+      startTime: 2018-03-22T15:32:35Z
+      steps:
+      - durationMilliseconds: 6531
+        name: PushImage
+        startTime: 2018-03-22T15:32:35Z
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: builder
+    name: builder
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/bc-builds/builder:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: ola
+    name: ola
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/bc-builds/ola:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: runtime
+    name: runtime
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/bc-builds/runtime:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/image.dockerRepositoryCheck: 2018-03-22T15:59:53Z
+    creationTimestamp: null
+    generation: 1
+    name: s2i-go
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/bc-builds/s2i-go:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/bc-builds/tasks:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: my-application
+    name: my-application
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: my-application
+      deploymentconfig: my-application
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: my-application
+          deploymentconfig: my-application
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/bc-builds/runtime@sha256:7af1a670831fbfa424c057ec8bea760b7bfbc8a4f55023a695af974f168d44a9
+          imagePullPolicy: Always
+          name: my-application
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - my-application
+        from:
+          kind: ImageStreamTag
+          name: runtime:latest
+          namespace: bc-builds
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: ola
+    name: ola
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: ola
+      deploymentconfig: ola
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: ola
+          deploymentconfig: ola
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/bc-builds/ola@sha256:c7e211a24131adbc998934be16a17b2c5d3c608fb8b110cc293cc4a79cc99548
+          imagePullPolicy: Always
+          name: ola
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8778
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ola
+        from:
+          kind: ImageStreamTag
+          name: ola:latest
+          namespace: bc-builds
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      deploymentConfig: tasks
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: eap70-basic-s2i
+          application: tasks
+          deploymentConfig: tasks
+        name: tasks
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_KUBE_PING_LABELS
+            value: application=tasks
+          - name: OPENSHIFT_KUBE_PING_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: MQ_CLUSTER_PASSWORD
+            value: v5hHonLC
+          - name: MQ_QUEUES
+          - name: MQ_TOPICS
+          - name: JGROUPS_CLUSTER_PASSWORD
+            value: FJYfODiy
+          - name: AUTO_DEPLOY_EXPLODED
+            value: "false"
+          image: docker-registry.default.svc:5000/bc-builds/tasks@sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f
+          imagePullPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/livenessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: tasks
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8888
+            name: ping
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/readinessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 75
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - tasks
+        from:
+          kind: ImageStreamTag
+          name: tasks:latest
+          namespace: bc-builds
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: my-application
+    name: my-application
+  spec:
+    host: my-application-bc-builds.apps.acc.example.opentlc.com
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: my-application
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-03-22T16:03:03Z
+        status: "True"
+        type: Admitted
+      host: my-application-bc-builds.apps.acc.example.opentlc.com
+      routerName: router
+      wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: ola
+    name: ola
+  spec:
+    host: ola-bc-builds.apps.acc.example.opentlc.com
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: ola
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-03-22T15:55:47Z
+        status: "True"
+        type: Admitted
+      host: ola-bc-builds.apps.acc.example.opentlc.com
+      routerName: router
+      wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's http service.
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks
+  spec:
+    host: tasks-bc-builds.apps.acc.example.opentlc.com
+    to:
+      kind: Service
+      name: tasks
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-03-22T15:23:05Z
+        status: "True"
+        type: Admitted
+      host: tasks-bc-builds.apps.acc.example.opentlc.com
+      routerName: router
+      wildcardPolicy: None
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container sti-build; cpu, memory limit for container sti-build; cpu, memory
+        request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: builder-1
+      openshift.io/scc: privileged
+      pod.alpha.kubernetes.io/init-containers: '[{"name":"git-clone","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-git-clone"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"builder-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1\",\"uid\":\"29d3aec8-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071265\",\"creationTimestamp\":\"2018-03-22T16:00:38Z\",\"labels\":{\"build\":\"builder\",\"buildconfig\":\"builder\",\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"builder\",\"uid\":\"29d131b2-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"https://github.com/tonykay/ose-chained-builds\"},\"contextDir\":\"/go-scratch/hello_world\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"bc-builds\",\"name\":\"s2i-go:latest\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"builder\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_URI","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_CONTEXT_DIR","value":"/go-scratch/hello_world"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}},{"name":"manage-dockerfile","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"builder-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1\",\"uid\":\"29d3aec8-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071265\",\"creationTimestamp\":\"2018-03-22T16:00:38Z\",\"labels\":{\"build\":\"builder\",\"buildconfig\":\"builder\",\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"builder\",\"uid\":\"29d131b2-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"https://github.com/tonykay/ose-chained-builds\"},\"contextDir\":\"/go-scratch/hello_world\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"bc-builds\",\"name\":\"s2i-go:latest\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"builder\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_URI","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_CONTEXT_DIR","value":"/go-scratch/hello_world"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+      pod.beta.kubernetes.io/init-containers: '[{"name":"git-clone","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-git-clone"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"builder-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1\",\"uid\":\"29d3aec8-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071265\",\"creationTimestamp\":\"2018-03-22T16:00:38Z\",\"labels\":{\"build\":\"builder\",\"buildconfig\":\"builder\",\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"builder\",\"uid\":\"29d131b2-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"https://github.com/tonykay/ose-chained-builds\"},\"contextDir\":\"/go-scratch/hello_world\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"bc-builds\",\"name\":\"s2i-go:latest\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"builder\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_URI","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_CONTEXT_DIR","value":"/go-scratch/hello_world"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}},{"name":"manage-dockerfile","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"builder-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1\",\"uid\":\"29d3aec8-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071265\",\"creationTimestamp\":\"2018-03-22T16:00:38Z\",\"labels\":{\"build\":\"builder\",\"buildconfig\":\"builder\",\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"builder\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"builder\",\"uid\":\"29d131b2-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"https://github.com/tonykay/ose-chained-builds\"},\"contextDir\":\"/go-scratch/hello_world\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"bc-builds\",\"name\":\"s2i-go:latest\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/builder:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"builder\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_URI","value":"https://github.com/tonykay/ose-chained-builds"},{"name":"SOURCE_CONTEXT_DIR","value":"/go-scratch/hello_world"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: builder-1
+    name: builder-1-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: builder-1
+      uid: 29d3aec8-2dea-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-sti-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"builder-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1","uid":"29d3aec8-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1071265","creationTimestamp":"2018-03-22T16:00:38Z","labels":{"build":"builder","buildconfig":"builder","openshift.io/build-config.name":"builder","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"builder","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"builder","uid":"29d131b2-2dea-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"https://github.com/tonykay/ose-chained-builds"},"contextDir":"/go-scratch/hello_world"},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/builder:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Image change","imageChangeBuild":{"imageID":"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9","fromRef":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"s2i-go:latest"}}}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/builder:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"builder"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: https://github.com/tonykay/ose-chained-builds
+      - name: SOURCE_URI
+        value: https://github.com/tonykay/ose-chained-builds
+      - name: SOURCE_CONTEXT_DIR
+        value: /go-scratch/hello_world
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: sti-build
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-lz68f-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-lz68f
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"builder-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1","uid":"29d3aec8-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1071265","creationTimestamp":"2018-03-22T16:00:38Z","labels":{"build":"builder","buildconfig":"builder","openshift.io/build-config.name":"builder","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"builder","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"builder","uid":"29d131b2-2dea-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"https://github.com/tonykay/ose-chained-builds"},"contextDir":"/go-scratch/hello_world"},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/builder:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Image change","imageChangeBuild":{"imageID":"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9","fromRef":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"s2i-go:latest"}}}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/builder:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"builder"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: https://github.com/tonykay/ose-chained-builds
+      - name: SOURCE_URI
+        value: https://github.com/tonykay/ose-chained-builds
+      - name: SOURCE_CONTEXT_DIR
+        value: /go-scratch/hello_world
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"builder-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/builder-1","uid":"29d3aec8-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1071265","creationTimestamp":"2018-03-22T16:00:38Z","labels":{"build":"builder","buildconfig":"builder","openshift.io/build-config.name":"builder","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"builder","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"builder","uid":"29d131b2-2dea-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"https://github.com/tonykay/ose-chained-builds"},"contextDir":"/go-scratch/hello_world"},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/builder:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Image change","imageChangeBuild":{"imageID":"jorgemoralespou/s2i-go@sha256:260723a0f13577ba70b9546915e5f0dca3b05d88534bec317b1fbcb83dd803f9","fromRef":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"s2i-go:latest"}}}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/builder:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"builder"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: https://github.com/tonykay/ose-chained-builds
+      - name: SOURCE_URI
+        value: https://github.com/tonykay/ose-chained-builds
+      - name: SOURCE_CONTEXT_DIR
+        value: /go-scratch/hello_world
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    nodeName: node6.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - hostPath:
+        path: /var/run/docker.sock
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+      name: crio-socket
+    - name: builder-dockercfg-lz68f-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-lz68f
+    - name: builder-token-ccxk6
+      secret:
+        defaultMode: 420
+        secretName: builder-token-ccxk6
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/created-by: |
+        {"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"ReplicationController","namespace":"bc-builds","name":"my-application-1","uid":"78ed9c0e-2dea-11e8-9d34-166b4f376a2c","apiVersion":"v1","resourceVersion":"1072081"}}
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container my-application; cpu, memory limit for container my-application'
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: my-application
+      openshift.io/deployment.name: my-application-1
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/scc: restricted
+    creationTimestamp: null
+    generateName: my-application-1-
+    labels:
+      app: my-application
+      deployment: my-application-1
+      deploymentconfig: my-application
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicationController
+      name: my-application-1
+      uid: 78ed9c0e-2dea-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - image: docker-registry.default.svc:5000/bc-builds/runtime@sha256:7af1a670831fbfa424c057ec8bea760b7bfbc8a4f55023a695af974f168d44a9
+      imagePullPolicy: Always
+      name: my-application
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        privileged: false
+        runAsUser: 1002480000
+        seLinuxOptions:
+          level: s0:c50,c15
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-qmmds
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: default-dockercfg-62lbw
+    nodeName: node6.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1002480000
+      seLinuxOptions:
+        level: s0:c50,c15
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - name: default-token-qmmds
+      secret:
+        defaultMode: 420
+        secretName: default-token-qmmds
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container sti-build; cpu, memory limit for container sti-build; cpu, memory
+        request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: ola-1
+      openshift.io/scc: privileged
+      pod.alpha.kubernetes.io/init-containers: '[{"name":"git-clone","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-git-clone"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"ola-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1\",\"uid\":\"3ab0916d-2de9-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1068722\",\"creationTimestamp\":\"2018-03-22T15:53:57Z\",\"labels\":{\"build\":\"ola\",\"buildconfig\":\"ola\",\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"ola\",\"uid\":\"3605ffc1-2de9-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Binary\",\"binary\":{\"asFile\":\"ola.jar\"}},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"ola\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false},"stdin":true,"stdinOnce":true},{"name":"manage-dockerfile","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"ola-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1\",\"uid\":\"3ab0916d-2de9-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1068722\",\"creationTimestamp\":\"2018-03-22T15:53:57Z\",\"labels\":{\"build\":\"ola\",\"buildconfig\":\"ola\",\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"ola\",\"uid\":\"3605ffc1-2de9-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Binary\",\"binary\":{\"asFile\":\"ola.jar\"}},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"ola\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+      pod.beta.kubernetes.io/init-containers: '[{"name":"git-clone","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-git-clone"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"ola-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1\",\"uid\":\"3ab0916d-2de9-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1068722\",\"creationTimestamp\":\"2018-03-22T15:53:57Z\",\"labels\":{\"build\":\"ola\",\"buildconfig\":\"ola\",\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"ola\",\"uid\":\"3605ffc1-2de9-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Binary\",\"binary\":{\"asFile\":\"ola.jar\"}},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"ola\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false},"stdin":true,"stdinOnce":true},{"name":"manage-dockerfile","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"ola-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1\",\"uid\":\"3ab0916d-2de9-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1068722\",\"creationTimestamp\":\"2018-03-22T15:53:57Z\",\"labels\":{\"build\":\"ola\",\"buildconfig\":\"ola\",\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"ola\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"ola\",\"uid\":\"3605ffc1-2de9-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Binary\",\"binary\":{\"asFile\":\"ola.jar\"}},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/ola:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"ola\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: ola-1
+    name: ola-1-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: ola-1
+      uid: 3ab0916d-2de9-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-sti-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"ola-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1","uid":"3ab0916d-2de9-11e8-9d34-166b4f376a2c","resourceVersion":"1068722","creationTimestamp":"2018-03-22T15:53:57Z","labels":{"build":"ola","buildconfig":"ola","openshift.io/build-config.name":"ola","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"ola","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"ola","uid":"3605ffc1-2de9-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{"asFile":"ola.jar"}},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/ola:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/ola:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"ola"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: sti-build
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-lz68f-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-lz68f
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"ola-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1","uid":"3ab0916d-2de9-11e8-9d34-166b4f376a2c","resourceVersion":"1068722","creationTimestamp":"2018-03-22T15:53:57Z","labels":{"build":"ola","buildconfig":"ola","openshift.io/build-config.name":"ola","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"ola","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"ola","uid":"3605ffc1-2de9-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{"asFile":"ola.jar"}},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/ola:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/ola:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"ola"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      stdin: true
+      stdinOnce: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"ola-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/ola-1","uid":"3ab0916d-2de9-11e8-9d34-166b4f376a2c","resourceVersion":"1068722","creationTimestamp":"2018-03-22T15:53:57Z","labels":{"build":"ola","buildconfig":"ola","openshift.io/build-config.name":"ola","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"ola","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"ola","uid":"3605ffc1-2de9-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{"asFile":"ola.jar"}},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift@sha256:afe904fd986c4147d1905813eb1a2f5bc3480ecad5b70b4ccfec384271777429"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/ola:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/ola:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"ola"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    nodeName: node6.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - hostPath:
+        path: /var/run/docker.sock
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+      name: crio-socket
+    - name: builder-dockercfg-lz68f-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-lz68f
+    - name: builder-token-ccxk6
+      secret:
+        defaultMode: 420
+        secretName: builder-token-ccxk6
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/created-by: |
+        {"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"ReplicationController","namespace":"bc-builds","name":"ola-1","uid":"70525d75-2de9-11e8-9d34-166b4f376a2c","apiVersion":"v1","resourceVersion":"1069441"}}
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container ola; cpu, memory limit for container ola'
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: ola
+      openshift.io/deployment.name: ola-1
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/scc: restricted
+    creationTimestamp: null
+    generateName: ola-1-
+    labels:
+      app: ola
+      deployment: ola-1
+      deploymentconfig: ola
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicationController
+      name: ola-1
+      uid: 70525d75-2de9-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - image: docker-registry.default.svc:5000/bc-builds/ola@sha256:c7e211a24131adbc998934be16a17b2c5d3c608fb8b110cc293cc4a79cc99548
+      imagePullPolicy: Always
+      name: ola
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      - containerPort: 8443
+        protocol: TCP
+      - containerPort: 8778
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        privileged: false
+        runAsUser: 1002480000
+        seLinuxOptions:
+          level: s0:c50,c15
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-qmmds
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: default-dockercfg-62lbw
+    nodeName: node5.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1002480000
+      seLinuxOptions:
+        level: s0:c50,c15
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - name: default-token-qmmds
+      secret:
+        defaultMode: 420
+        secretName: default-token-qmmds
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container docker-build; cpu, memory limit for container docker-build; cpu,
+        memory request for init container extract-image-content; cpu, memory limit
+        for init container extract-image-content; cpu, memory request for init container
+        manage-dockerfile; cpu, memory limit for init container manage-dockerfile'
+      openshift.io/build.name: runtime-1
+      openshift.io/scc: privileged
+      pod.alpha.kubernetes.io/init-containers: '[{"name":"extract-image-content","image":"openshift3/ose-docker-builder:v3.7.23","command":["openshift-extract-image-content"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"runtime-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1\",\"uid\":\"5c8e099d-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071779\",\"creationTimestamp\":\"2018-03-22T16:02:03Z\",\"labels\":{\"build\":\"runtime\",\"buildconfig\":\"runtime\",\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"runtime\",\"uid\":\"5c88e6cf-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Dockerfile\",\"dockerfile\":\"FROM
+        scratch\\nCOPY main /main\\nEXPOSE 8080\\nENTRYPOINT [\\\"/main\\\"]\",\"images\":[{\"from\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603\"},\"paths\":[{\"sourcePath\":\"/opt/app-root/src/go/src/main/main\",\"destinationDir\":\".\"}],\"pullSecret\":{\"name\":\"builder-dockercfg-lz68f\"}}]},\"strategy\":{\"type\":\"Docker\",\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"scratch\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Build
+        configuration change\"}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"runtime\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"PUSH_DOCKERCFG_PATH","value":"/var/run/secrets/openshift.io/push"},{"name":"PULL_SOURCE_DOCKERCFG_PATH_0","value":"/var/run/secrets/openshift.io/source-image/0"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-dockercfg-lz68f-push","readOnly":true,"mountPath":"/var/run/secrets/openshift.io/push"},{"name":"builder-dockercfg-lz68f-source-image0","readOnly":true,"mountPath":"/var/run/secrets/openshift.io/source-image/0"},{"name":"docker-socket","mountPath":"/var/run/docker.sock"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":true}},{"name":"manage-dockerfile","image":"openshift3/ose-docker-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"runtime-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1\",\"uid\":\"5c8e099d-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071779\",\"creationTimestamp\":\"2018-03-22T16:02:03Z\",\"labels\":{\"build\":\"runtime\",\"buildconfig\":\"runtime\",\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"runtime\",\"uid\":\"5c88e6cf-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Dockerfile\",\"dockerfile\":\"FROM
+        scratch\\nCOPY main /main\\nEXPOSE 8080\\nENTRYPOINT [\\\"/main\\\"]\",\"images\":[{\"from\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603\"},\"paths\":[{\"sourcePath\":\"/opt/app-root/src/go/src/main/main\",\"destinationDir\":\".\"}],\"pullSecret\":{\"name\":\"builder-dockercfg-lz68f\"}}]},\"strategy\":{\"type\":\"Docker\",\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"scratch\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Build
+        configuration change\"}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"runtime\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+      pod.beta.kubernetes.io/init-containers: '[{"name":"extract-image-content","image":"openshift3/ose-docker-builder:v3.7.23","command":["openshift-extract-image-content"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"runtime-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1\",\"uid\":\"5c8e099d-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071779\",\"creationTimestamp\":\"2018-03-22T16:02:03Z\",\"labels\":{\"build\":\"runtime\",\"buildconfig\":\"runtime\",\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"runtime\",\"uid\":\"5c88e6cf-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Dockerfile\",\"dockerfile\":\"FROM
+        scratch\\nCOPY main /main\\nEXPOSE 8080\\nENTRYPOINT [\\\"/main\\\"]\",\"images\":[{\"from\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603\"},\"paths\":[{\"sourcePath\":\"/opt/app-root/src/go/src/main/main\",\"destinationDir\":\".\"}],\"pullSecret\":{\"name\":\"builder-dockercfg-lz68f\"}}]},\"strategy\":{\"type\":\"Docker\",\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"scratch\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Build
+        configuration change\"}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"runtime\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"PUSH_DOCKERCFG_PATH","value":"/var/run/secrets/openshift.io/push"},{"name":"PULL_SOURCE_DOCKERCFG_PATH_0","value":"/var/run/secrets/openshift.io/source-image/0"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-dockercfg-lz68f-push","readOnly":true,"mountPath":"/var/run/secrets/openshift.io/push"},{"name":"builder-dockercfg-lz68f-source-image0","readOnly":true,"mountPath":"/var/run/secrets/openshift.io/source-image/0"},{"name":"docker-socket","mountPath":"/var/run/docker.sock"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":true}},{"name":"manage-dockerfile","image":"openshift3/ose-docker-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"runtime-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1\",\"uid\":\"5c8e099d-2dea-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1071779\",\"creationTimestamp\":\"2018-03-22T16:02:03Z\",\"labels\":{\"build\":\"runtime\",\"buildconfig\":\"runtime\",\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.start-policy\":\"Serial\"},\"annotations\":{\"openshift.io/build-config.name\":\"runtime\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"runtime\",\"uid\":\"5c88e6cf-2dea-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Dockerfile\",\"dockerfile\":\"FROM
+        scratch\\nCOPY main /main\\nEXPOSE 8080\\nENTRYPOINT [\\\"/main\\\"]\",\"images\":[{\"from\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603\"},\"paths\":[{\"sourcePath\":\"/opt/app-root/src/go/src/main/main\",\"destinationDir\":\".\"}],\"pullSecret\":{\"name\":\"builder-dockercfg-lz68f\"}}]},\"strategy\":{\"type\":\"Docker\",\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"scratch\"}}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Build
+        configuration change\"}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/runtime:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"runtime\"},\"output\":{}}}\n"},{"name":"ORIGIN_VERSION","value":"v3.7.23"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: runtime-1
+    name: runtime-1-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: runtime-1
+      uid: 5c8e099d-2dea-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-docker-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"runtime-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1","uid":"5c8e099d-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1071779","creationTimestamp":"2018-03-22T16:02:03Z","labels":{"build":"runtime","buildconfig":"runtime","openshift.io/build-config.name":"runtime","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"runtime","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"runtime","uid":"5c88e6cf-2dea-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Dockerfile","dockerfile":"FROM scratch\nCOPY main /main\nEXPOSE 8080\nENTRYPOINT [\"/main\"]","images":[{"from":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603"},"paths":[{"sourcePath":"/opt/app-root/src/go/src/main/main","destinationDir":"."}],"pullSecret":{"name":"builder-dockercfg-lz68f"}}]},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"scratch"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/runtime:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Build configuration change"}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/runtime:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"runtime"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      - name: PULL_SOURCE_DOCKERCFG_PATH_0
+        value: /var/run/secrets/openshift.io/source-image/0
+      image: openshift3/ose-docker-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: docker-build
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-lz68f-push
+        readOnly: true
+      - mountPath: /var/run/secrets/openshift.io/source-image/0
+        name: builder-dockercfg-lz68f-source-image0
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-lz68f
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-extract-image-content
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"runtime-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1","uid":"5c8e099d-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1071779","creationTimestamp":"2018-03-22T16:02:03Z","labels":{"build":"runtime","buildconfig":"runtime","openshift.io/build-config.name":"runtime","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"runtime","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"runtime","uid":"5c88e6cf-2dea-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Dockerfile","dockerfile":"FROM scratch\nCOPY main /main\nEXPOSE 8080\nENTRYPOINT [\"/main\"]","images":[{"from":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603"},"paths":[{"sourcePath":"/opt/app-root/src/go/src/main/main","destinationDir":"."}],"pullSecret":{"name":"builder-dockercfg-lz68f"}}]},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"scratch"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/runtime:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Build configuration change"}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/runtime:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"runtime"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      - name: PULL_SOURCE_DOCKERCFG_PATH_0
+        value: /var/run/secrets/openshift.io/source-image/0
+      image: openshift3/ose-docker-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: extract-image-content
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-lz68f-push
+        readOnly: true
+      - mountPath: /var/run/secrets/openshift.io/source-image/0
+        name: builder-dockercfg-lz68f-source-image0
+        readOnly: true
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"runtime-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/runtime-1","uid":"5c8e099d-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1071779","creationTimestamp":"2018-03-22T16:02:03Z","labels":{"build":"runtime","buildconfig":"runtime","openshift.io/build-config.name":"runtime","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"runtime","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"runtime","uid":"5c88e6cf-2dea-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Dockerfile","dockerfile":"FROM scratch\nCOPY main /main\nEXPOSE 8080\nENTRYPOINT [\"/main\"]","images":[{"from":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/builder@sha256:50047330519af4b22d621c44a8c256fa0d12561dbe535b349e51d6f922e3a603"},"paths":[{"sourcePath":"/opt/app-root/src/go/src/main/main","destinationDir":"."}],"pullSecret":{"name":"builder-dockercfg-lz68f"}}]},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"scratch"}}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/runtime:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Build configuration change"}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/runtime:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"runtime"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      image: openshift3/ose-docker-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    nodeName: node6.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - name: builder-dockercfg-lz68f-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-lz68f
+    - name: builder-dockercfg-lz68f-source-image0
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-lz68f
+    - hostPath:
+        path: /var/run/docker.sock
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+      name: crio-socket
+    - name: builder-token-ccxk6
+      secret:
+        defaultMode: 420
+        secretName: builder-token-ccxk6
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container sti-build; cpu, memory limit for container sti-build; cpu, memory
+        request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: tasks-1
+      openshift.io/scc: privileged
+      pod.alpha.kubernetes.io/init-containers: '[{"name":"git-clone","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-git-clone"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"tasks-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1\",\"uid\":\"eb03a38c-2de4-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1057772\",\"creationTimestamp\":\"2018-03-22T15:23:05Z\",\"labels\":{\"app\":\"eap70-basic-s2i\",\"application\":\"tasks\",\"buildconfig\":\"tasks\",\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.start-policy\":\"Serial\",\"template\":\"eap70-basic-s2i\",\"xpaas\":\"1.4.7\"},\"annotations\":{\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"tasks\",\"uid\":\"eb013677-2de4-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git\",\"ref\":\"master\"},\"contextDir\":\"/\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\"},\"env\":[{\"name\":\"MAVEN_MIRROR_URL\",\"value\":\"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public\"},{\"name\":\"ARTIFACT_DIR\"}],\"forcePull\":true}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"openshift\",\"name\":\"jboss-eap70-openshift:1.6\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"tasks\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_URI","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_CONTEXT_DIR","value":"/"},{"name":"SOURCE_REF","value":"master"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}},{"name":"manage-dockerfile","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"tasks-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1\",\"uid\":\"eb03a38c-2de4-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1057772\",\"creationTimestamp\":\"2018-03-22T15:23:05Z\",\"labels\":{\"app\":\"eap70-basic-s2i\",\"application\":\"tasks\",\"buildconfig\":\"tasks\",\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.start-policy\":\"Serial\",\"template\":\"eap70-basic-s2i\",\"xpaas\":\"1.4.7\"},\"annotations\":{\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"tasks\",\"uid\":\"eb013677-2de4-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git\",\"ref\":\"master\"},\"contextDir\":\"/\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\"},\"env\":[{\"name\":\"MAVEN_MIRROR_URL\",\"value\":\"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public\"},{\"name\":\"ARTIFACT_DIR\"}],\"forcePull\":true}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"openshift\",\"name\":\"jboss-eap70-openshift:1.6\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"tasks\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_URI","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_CONTEXT_DIR","value":"/"},{"name":"SOURCE_REF","value":"master"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+      pod.beta.kubernetes.io/init-containers: '[{"name":"git-clone","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-git-clone"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"tasks-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1\",\"uid\":\"eb03a38c-2de4-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1057772\",\"creationTimestamp\":\"2018-03-22T15:23:05Z\",\"labels\":{\"app\":\"eap70-basic-s2i\",\"application\":\"tasks\",\"buildconfig\":\"tasks\",\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.start-policy\":\"Serial\",\"template\":\"eap70-basic-s2i\",\"xpaas\":\"1.4.7\"},\"annotations\":{\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"tasks\",\"uid\":\"eb013677-2de4-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git\",\"ref\":\"master\"},\"contextDir\":\"/\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\"},\"env\":[{\"name\":\"MAVEN_MIRROR_URL\",\"value\":\"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public\"},{\"name\":\"ARTIFACT_DIR\"}],\"forcePull\":true}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"openshift\",\"name\":\"jboss-eap70-openshift:1.6\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"tasks\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_URI","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_CONTEXT_DIR","value":"/"},{"name":"SOURCE_REF","value":"master"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}},{"name":"manage-dockerfile","image":"openshift3/ose-sti-builder:v3.7.23","command":["openshift-manage-dockerfile"],"args":["--loglevel=0"],"env":[{"name":"BUILD","value":"{\"kind\":\"Build\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"tasks-1\",\"namespace\":\"bc-builds\",\"selfLink\":\"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1\",\"uid\":\"eb03a38c-2de4-11e8-9d34-166b4f376a2c\",\"resourceVersion\":\"1057772\",\"creationTimestamp\":\"2018-03-22T15:23:05Z\",\"labels\":{\"app\":\"eap70-basic-s2i\",\"application\":\"tasks\",\"buildconfig\":\"tasks\",\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.start-policy\":\"Serial\",\"template\":\"eap70-basic-s2i\",\"xpaas\":\"1.4.7\"},\"annotations\":{\"openshift.io/build-config.name\":\"tasks\",\"openshift.io/build.number\":\"1\"},\"ownerReferences\":[{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"name\":\"tasks\",\"uid\":\"eb013677-2de4-11e8-9d34-166b4f376a2c\",\"controller\":true}]},\"spec\":{\"serviceAccount\":\"builder\",\"source\":{\"type\":\"Git\",\"git\":{\"uri\":\"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git\",\"ref\":\"master\"},\"contextDir\":\"/\"},\"strategy\":{\"type\":\"Source\",\"sourceStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\"},\"env\":[{\"name\":\"MAVEN_MIRROR_URL\",\"value\":\"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public\"},{\"name\":\"ARTIFACT_DIR\"}],\"forcePull\":true}},\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\"},\"pushSecret\":{\"name\":\"builder-dockercfg-lz68f\"}},\"resources\":{},\"postCommit\":{},\"nodeSelector\":null,\"triggeredBy\":[{\"message\":\"Image
+        change\",\"imageChangeBuild\":{\"imageID\":\"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5\",\"fromRef\":{\"kind\":\"ImageStreamTag\",\"namespace\":\"openshift\",\"name\":\"jboss-eap70-openshift:1.6\"}}}]},\"status\":{\"phase\":\"New\",\"outputDockerImageReference\":\"docker-registry.default.svc:5000/bc-builds/tasks:latest\",\"config\":{\"kind\":\"BuildConfig\",\"namespace\":\"bc-builds\",\"name\":\"tasks\"},\"output\":{}}}\n"},{"name":"SOURCE_REPOSITORY","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_URI","value":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git"},{"name":"SOURCE_CONTEXT_DIR","value":"/"},{"name":"SOURCE_REF","value":"master"},{"name":"ORIGIN_VERSION","value":"v3.7.23"},{"name":"ALLOWED_UIDS","value":"1-"},{"name":"DROP_CAPS","value":"KILL,MKNOD,SETGID,SETUID"}],"resources":{"limits":{"cpu":"500m","memory":"1536Mi"},"requests":{"cpu":"50m","memory":"256Mi"}},"volumeMounts":[{"name":"buildworkdir","mountPath":"/tmp/build"},{"name":"builder-token-ccxk6","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"FallbackToLogsOnError","imagePullPolicy":"IfNotPresent","securityContext":{"privileged":false}}]'
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: tasks-1
+    name: tasks-1-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: tasks-1
+      uid: eb03a38c-2de4-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-sti-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"tasks-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1","uid":"eb03a38c-2de4-11e8-9d34-166b4f376a2c","resourceVersion":"1057772","creationTimestamp":"2018-03-22T15:23:05Z","labels":{"app":"eap70-basic-s2i","application":"tasks","buildconfig":"tasks","openshift.io/build-config.name":"tasks","openshift.io/build.start-policy":"Serial","template":"eap70-basic-s2i","xpaas":"1.4.7"},"annotations":{"openshift.io/build-config.name":"tasks","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"tasks","uid":"eb013677-2de4-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git","ref":"master"},"contextDir":"/"},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5"},"env":[{"name":"MAVEN_MIRROR_URL","value":"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public"},{"name":"ARTIFACT_DIR"}],"forcePull":true}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/tasks:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Image change","imageChangeBuild":{"imageID":"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5","fromRef":{"kind":"ImageStreamTag","namespace":"openshift","name":"jboss-eap70-openshift:1.6"}}}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/tasks:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"tasks"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      - name: SOURCE_URI
+        value: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      - name: SOURCE_CONTEXT_DIR
+        value: /
+      - name: SOURCE_REF
+        value: master
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: sti-build
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-lz68f-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-lz68f
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"tasks-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1","uid":"eb03a38c-2de4-11e8-9d34-166b4f376a2c","resourceVersion":"1057772","creationTimestamp":"2018-03-22T15:23:05Z","labels":{"app":"eap70-basic-s2i","application":"tasks","buildconfig":"tasks","openshift.io/build-config.name":"tasks","openshift.io/build.start-policy":"Serial","template":"eap70-basic-s2i","xpaas":"1.4.7"},"annotations":{"openshift.io/build-config.name":"tasks","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"tasks","uid":"eb013677-2de4-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git","ref":"master"},"contextDir":"/"},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5"},"env":[{"name":"MAVEN_MIRROR_URL","value":"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public"},{"name":"ARTIFACT_DIR"}],"forcePull":true}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/tasks:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Image change","imageChangeBuild":{"imageID":"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5","fromRef":{"kind":"ImageStreamTag","namespace":"openshift","name":"jboss-eap70-openshift:1.6"}}}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/tasks:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"tasks"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      - name: SOURCE_URI
+        value: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      - name: SOURCE_CONTEXT_DIR
+        value: /
+      - name: SOURCE_REF
+        value: master
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"tasks-1","namespace":"bc-builds","selfLink":"/apis/build.openshift.io/v1/namespaces/bc-builds/builds/tasks-1","uid":"eb03a38c-2de4-11e8-9d34-166b4f376a2c","resourceVersion":"1057772","creationTimestamp":"2018-03-22T15:23:05Z","labels":{"app":"eap70-basic-s2i","application":"tasks","buildconfig":"tasks","openshift.io/build-config.name":"tasks","openshift.io/build.start-policy":"Serial","template":"eap70-basic-s2i","xpaas":"1.4.7"},"annotations":{"openshift.io/build-config.name":"tasks","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"tasks","uid":"eb013677-2de4-11e8-9d34-166b4f376a2c","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git","ref":"master"},"contextDir":"/"},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5"},"env":[{"name":"MAVEN_MIRROR_URL","value":"http://nexus3-bc-nexus.apps.acc.example.opentlc.com/repository/maven-all-public"},{"name":"ARTIFACT_DIR"}],"forcePull":true}},"output":{"to":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/tasks:latest"},"pushSecret":{"name":"builder-dockercfg-lz68f"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Image change","imageChangeBuild":{"imageID":"registry.access.redhat.com/jboss-eap-7/eap70-openshift@sha256:e4bfab9ef57cff6e85cc5edc184252282d8e9ff240d8f2b99ebba0e771fd1da5","fromRef":{"kind":"ImageStreamTag","namespace":"openshift","name":"jboss-eap70-openshift:1.6"}}}]},"status":{"phase":"New","outputDockerImageReference":"docker-registry.default.svc:5000/bc-builds/tasks:latest","config":{"kind":"BuildConfig","namespace":"bc-builds","name":"tasks"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      - name: SOURCE_URI
+        value: http://gogs-bc-gogs.apps.acc.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      - name: SOURCE_CONTEXT_DIR
+        value: /
+      - name: SOURCE_REF
+        value: master
+      - name: ORIGIN_VERSION
+        value: v3.7.23
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.23
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-ccxk6
+        readOnly: true
+    nodeName: node5.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - hostPath:
+        path: /var/run/docker.sock
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+      name: crio-socket
+    - name: builder-dockercfg-lz68f-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-lz68f
+    - name: builder-token-ccxk6
+      secret:
+        defaultMode: 420
+        secretName: builder-token-ccxk6
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/created-by: |
+        {"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"ReplicationController","namespace":"bc-builds","name":"tasks-2","uid":"42d05848-2de6-11e8-9d34-166b4f376a2c","apiVersion":"v1","resourceVersion":"1061388"}}
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container tasks; cpu, memory limit for container tasks'
+      openshift.io/deployment-config.latest-version: "2"
+      openshift.io/deployment-config.name: tasks
+      openshift.io/deployment.name: tasks-2
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/scc: restricted
+    creationTimestamp: null
+    generateName: tasks-2-
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      deployment: tasks-2
+      deploymentConfig: tasks
+      deploymentconfig: tasks
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicationController
+      name: tasks-2
+      uid: 42d05848-2de6-11e8-9d34-166b4f376a2c
+  spec:
+    containers:
+    - env:
+      - name: OPENSHIFT_KUBE_PING_LABELS
+        value: application=tasks
+      - name: OPENSHIFT_KUBE_PING_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: MQ_CLUSTER_PASSWORD
+        value: v5hHonLC
+      - name: MQ_QUEUES
+      - name: MQ_TOPICS
+      - name: JGROUPS_CLUSTER_PASSWORD
+        value: FJYfODiy
+      - name: AUTO_DEPLOY_EXPLODED
+        value: "false"
+      image: docker-registry.default.svc:5000/bc-builds/tasks@sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f
+      imagePullPolicy: Always
+      livenessProbe:
+        exec:
+          command:
+          - /bin/bash
+          - -c
+          - /opt/eap/bin/livenessProbe.sh
+        failureThreshold: 3
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      name: tasks
+      ports:
+      - containerPort: 8778
+        name: jolokia
+        protocol: TCP
+      - containerPort: 8080
+        name: http
+        protocol: TCP
+      - containerPort: 8888
+        name: ping
+        protocol: TCP
+      readinessProbe:
+        exec:
+          command:
+          - /bin/bash
+          - -c
+          - /opt/eap/bin/readinessProbe.sh
+        failureThreshold: 3
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1536Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        privileged: false
+        runAsUser: 1002480000
+        seLinuxOptions:
+          level: s0:c50,c15
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-qmmds
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: default-dockercfg-62lbw
+    nodeName: node2.acc.internal
+    nodeSelector:
+      env: users
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1002480000
+      seLinuxOptions:
+        level: s0:c50,c15
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 75
+    volumes:
+    - name: default-token-qmmds
+      secret:
+        defaultMode: 420
+        secretName: default-token-qmmds
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-03-22 16:02:58 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-22 16:02:50 +0000 UTC
+      openshift.io/deployer-pod.name: my-application-1-deploy
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: my-application
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"my-application","namespace":"bc-builds","selfLink":"/apis/apps.openshift.io/v1/namespaces/bc-builds/deploymentconfigs/my-application","uid":"78ebb644-2dea-11e8-9d34-166b4f376a2c","resourceVersion":"1072040","generation":2,"creationTimestamp":"2018-03-22T16:02:50Z","labels":{"app":"my-application"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["my-application"],"from":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"runtime:latest"},"lastTriggeredImage":"docker-registry.default.svc:5000/bc-builds/runtime@sha256:7af1a670831fbfa424c057ec8bea760b7bfbc8a4f55023a695af974f168d44a9"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"my-application","deploymentconfig":"my-application"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"my-application","deploymentconfig":"my-application"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"my-application","image":"docker-registry.default.svc:5000/bc-builds/runtime@sha256:7af1a670831fbfa424c057ec8bea760b7bfbc8a4f55023a695af974f168d44a9","ports":[{"containerPort":8080,"protocol":"TCP"}],"resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":1,"observedGeneration":2,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-03-22T16:02:50Z","lastTransitionTime":"2018-03-22T16:02:50Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: my-application
+      openshift.io/deployment-config.name: my-application
+    name: my-application-1
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: my-application
+      uid: 78ebb644-2dea-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 1
+    selector:
+      app: my-application
+      deployment: my-application-1
+      deploymentconfig: my-application
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "1"
+          openshift.io/deployment-config.name: my-application
+          openshift.io/deployment.name: my-application-1
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: my-application
+          deployment: my-application-1
+          deploymentconfig: my-application
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/bc-builds/runtime@sha256:7af1a670831fbfa424c057ec8bea760b7bfbc8a4f55023a695af974f168d44a9
+          imagePullPolicy: Always
+          name: my-application
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-03-22 15:55:37 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-22 15:55:26 +0000 UTC
+      openshift.io/deployer-pod.name: ola-1-deploy
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: ola
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"ola","namespace":"bc-builds","selfLink":"/apis/apps.openshift.io/v1/namespaces/bc-builds/deploymentconfigs/ola","uid":"6fb7f2fa-2de9-11e8-9d34-166b4f376a2c","resourceVersion":"1069399","generation":2,"creationTimestamp":"2018-03-22T15:55:25Z","labels":{"app":"ola"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["ola"],"from":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"ola:latest"},"lastTriggeredImage":"docker-registry.default.svc:5000/bc-builds/ola@sha256:c7e211a24131adbc998934be16a17b2c5d3c608fb8b110cc293cc4a79cc99548"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"ola","deploymentconfig":"ola"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"ola","deploymentconfig":"ola"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"ola","image":"docker-registry.default.svc:5000/bc-builds/ola@sha256:c7e211a24131adbc998934be16a17b2c5d3c608fb8b110cc293cc4a79cc99548","ports":[{"containerPort":8080,"protocol":"TCP"},{"containerPort":8443,"protocol":"TCP"},{"containerPort":8778,"protocol":"TCP"}],"resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":1,"observedGeneration":2,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-03-22T15:55:25Z","lastTransitionTime":"2018-03-22T15:55:25Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: ola
+      openshift.io/deployment-config.name: ola
+    name: ola-1
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: ola
+      uid: 6fb7f2fa-2de9-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 1
+    selector:
+      app: ola
+      deployment: ola-1
+      deploymentconfig: ola
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "1"
+          openshift.io/deployment-config.name: ola
+          openshift.io/deployment.name: ola-1
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: ola
+          deployment: ola-1
+          deploymentconfig: ola
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/bc-builds/ola@sha256:c7e211a24131adbc998934be16a17b2c5d3c608fb8b110cc293cc4a79cc99548
+          imagePullPolicy: Always
+          name: ola
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8778
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-03-22 15:28:46 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-22 15:28:00 +0000 UTC
+      openshift.io/deployer-pod.name: tasks-1-deploy
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: tasks
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"tasks","namespace":"bc-builds","selfLink":"/apis/apps.openshift.io/v1/namespaces/bc-builds/deploymentconfigs/tasks","uid":"eb081291-2de4-11e8-9d34-166b4f376a2c","resourceVersion":"1059508","generation":2,"creationTimestamp":"2018-03-22T15:23:05Z","labels":{"app":"eap70-basic-s2i","application":"tasks","template":"eap70-basic-s2i","xpaas":"1.4.7"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Recreate","recreateParams":{"timeoutSeconds":600},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["tasks"],"from":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"tasks:latest"},"lastTriggeredImage":"docker-registry.default.svc:5000/bc-builds/tasks@sha256:a960885559845622dc5a016c708f50a4eddb91e01f985116f699b386bc39c1c7"}},{"type":"ConfigChange"}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"deploymentConfig":"tasks"},"template":{"metadata":{"name":"tasks","creationTimestamp":null,"labels":{"app":"eap70-basic-s2i","application":"tasks","deploymentConfig":"tasks"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"tasks","image":"docker-registry.default.svc:5000/bc-builds/tasks@sha256:a960885559845622dc5a016c708f50a4eddb91e01f985116f699b386bc39c1c7","ports":[{"name":"jolokia","containerPort":8778,"protocol":"TCP"},{"name":"http","containerPort":8080,"protocol":"TCP"},{"name":"ping","containerPort":8888,"protocol":"TCP"}],"env":[{"name":"OPENSHIFT_KUBE_PING_LABELS","value":"application=tasks"},{"name":"OPENSHIFT_KUBE_PING_NAMESPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}},{"name":"MQ_CLUSTER_PASSWORD","value":"v5hHonLC"},{"name":"MQ_QUEUES"},{"name":"MQ_TOPICS"},{"name":"JGROUPS_CLUSTER_PASSWORD","value":"FJYfODiy"},{"name":"AUTO_DEPLOY_EXPLODED","value":"false"}],"resources":{},"livenessProbe":{"exec":{"command":["/bin/bash","-c","/opt/eap/bin/livenessProbe.sh"]},"timeoutSeconds":1,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"readinessProbe":{"exec":{"command":["/bin/bash","-c","/opt/eap/bin/readinessProbe.sh"]},"timeoutSeconds":1,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":75,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":1,"observedGeneration":2,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-03-22T15:23:05Z","lastTransitionTime":"2018-03-22T15:23:05Z","message":"Deployment config does not have minimum availability."}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      openshift.io/deployment-config.name: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks-1
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: tasks
+      uid: eb081291-2de4-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 0
+    selector:
+      deployment: tasks-1
+      deploymentConfig: tasks
+      deploymentconfig: tasks
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "1"
+          openshift.io/deployment-config.name: tasks
+          openshift.io/deployment.name: tasks-1
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: eap70-basic-s2i
+          application: tasks
+          deployment: tasks-1
+          deploymentConfig: tasks
+          deploymentconfig: tasks
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_KUBE_PING_LABELS
+            value: application=tasks
+          - name: OPENSHIFT_KUBE_PING_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: MQ_CLUSTER_PASSWORD
+            value: v5hHonLC
+          - name: MQ_QUEUES
+          - name: MQ_TOPICS
+          - name: JGROUPS_CLUSTER_PASSWORD
+            value: FJYfODiy
+          - name: AUTO_DEPLOY_EXPLODED
+            value: "false"
+          image: docker-registry.default.svc:5000/bc-builds/tasks@sha256:a960885559845622dc5a016c708f50a4eddb91e01f985116f699b386bc39c1c7
+          imagePullPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/livenessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: tasks
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8888
+            name: ping
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/readinessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 75
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-03-22 15:33:45 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-03-22 15:32:42 +0000 UTC
+      openshift.io/deployer-pod.name: tasks-2-deploy
+      openshift.io/deployment-config.latest-version: "2"
+      openshift.io/deployment-config.name: tasks
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: image change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"tasks","namespace":"bc-builds","selfLink":"/apis/apps.openshift.io/v1/namespaces/bc-builds/deploymentconfigs/tasks","uid":"eb081291-2de4-11e8-9d34-166b4f376a2c","resourceVersion":"1061197","generation":3,"creationTimestamp":"2018-03-22T15:23:05Z","labels":{"app":"eap70-basic-s2i","application":"tasks","template":"eap70-basic-s2i","xpaas":"1.4.7"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Recreate","recreateParams":{"timeoutSeconds":600},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["tasks"],"from":{"kind":"ImageStreamTag","namespace":"bc-builds","name":"tasks:latest"},"lastTriggeredImage":"docker-registry.default.svc:5000/bc-builds/tasks@sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f"}},{"type":"ConfigChange"}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"deploymentConfig":"tasks"},"template":{"metadata":{"name":"tasks","creationTimestamp":null,"labels":{"app":"eap70-basic-s2i","application":"tasks","deploymentConfig":"tasks"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"tasks","image":"docker-registry.default.svc:5000/bc-builds/tasks@sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f","ports":[{"name":"jolokia","containerPort":8778,"protocol":"TCP"},{"name":"http","containerPort":8080,"protocol":"TCP"},{"name":"ping","containerPort":8888,"protocol":"TCP"}],"env":[{"name":"OPENSHIFT_KUBE_PING_LABELS","value":"application=tasks"},{"name":"OPENSHIFT_KUBE_PING_NAMESPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}},{"name":"MQ_CLUSTER_PASSWORD","value":"v5hHonLC"},{"name":"MQ_QUEUES"},{"name":"MQ_TOPICS"},{"name":"JGROUPS_CLUSTER_PASSWORD","value":"FJYfODiy"},{"name":"AUTO_DEPLOY_EXPLODED","value":"false"}],"resources":{},"livenessProbe":{"exec":{"command":["/bin/bash","-c","/opt/eap/bin/livenessProbe.sh"]},"timeoutSeconds":1,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"readinessProbe":{"exec":{"command":["/bin/bash","-c","/opt/eap/bin/readinessProbe.sh"]},"timeoutSeconds":1,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":75,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":2,"observedGeneration":3,"replicas":1,"updatedReplicas":0,"availableReplicas":1,"unavailableReplicas":0,"details":{"message":"image change","causes":[{"type":"ImageChange","imageTrigger":{"from":{"kind":"DockerImage","name":"docker-registry.default.svc:5000/bc-builds/tasks@sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f"}}}]},"conditions":[{"type":"Available","status":"True","lastUpdateTime":"2018-03-22T15:28:46Z","lastTransitionTime":"2018-03-22T15:28:46Z","message":"Deployment config has minimum availability."},{"type":"Progressing","status":"True","lastUpdateTime":"2018-03-22T15:28:47Z","lastTransitionTime":"2018-03-22T15:28:03Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"tasks-1\" successfully rolled out"}],"readyReplicas":1}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      openshift.io/deployment-config.name: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks-2
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: tasks
+      uid: eb081291-2de4-11e8-9d34-166b4f376a2c
+  spec:
+    replicas: 1
+    selector:
+      deployment: tasks-2
+      deploymentConfig: tasks
+      deploymentconfig: tasks
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "2"
+          openshift.io/deployment-config.name: tasks
+          openshift.io/deployment.name: tasks-2
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: eap70-basic-s2i
+          application: tasks
+          deployment: tasks-2
+          deploymentConfig: tasks
+          deploymentconfig: tasks
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_KUBE_PING_LABELS
+            value: application=tasks
+          - name: OPENSHIFT_KUBE_PING_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: MQ_CLUSTER_PASSWORD
+            value: v5hHonLC
+          - name: MQ_QUEUES
+          - name: MQ_TOPICS
+          - name: JGROUPS_CLUSTER_PASSWORD
+            value: FJYfODiy
+          - name: AUTO_DEPLOY_EXPLODED
+            value: "false"
+          image: docker-registry.default.svc:5000/bc-builds/tasks@sha256:4d701f3a562977680040c541f5855e5bf27fa3f17c9c9c7acdd2c714fe9f1f0f
+          imagePullPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/livenessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: tasks
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8888
+            name: ping
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/readinessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 75
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: my-application
+    name: my-application
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: my-application
+      deploymentconfig: my-application
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: ola
+    name: ola
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    - name: 8778-tcp
+      port: 8778
+      protocol: TCP
+      targetPort: 8778
+    selector:
+      app: ola
+      deploymentconfig: ola
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: The web server's http port.
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: eap70-basic-s2i
+      application: tasks
+      template: eap70-basic-s2i
+      xpaas: 1.4.7
+    name: tasks
+  spec:
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      deploymentConfig: tasks
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}

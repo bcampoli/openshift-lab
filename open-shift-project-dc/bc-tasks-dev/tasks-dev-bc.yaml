@@ -1,0 +1,43 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewBuild
+  creationTimestamp: '2018-03-22T16:31:42Z'
+  labels:
+    build: tasks
+  name: tasks
+  namespace: bc-tasks-dev
+  resourceVersion: '1377022'
+  selfLink: /apis/build.openshift.io/v1/namespaces/bc-tasks-dev/buildconfigs/tasks
+  uid: 80e6b8cf-2dee-11e8-9d34-166b4f376a2c
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'tasks:latest'
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    binary: {}
+    type: Binary
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: 'jboss-eap70-openshift:1.6'
+        namespace: openshift
+    type: Source
+  successfulBuildsHistoryLimit: 5
+  triggers:
+    - github:
+        secret: DVYq_ZmRvI1UEvVuV0eL
+      type: GitHub
+    - generic:
+        secret: edNmvHDMSKCY8p6XcEP1
+      type: Generic
+status:
+  lastVersion: 6
